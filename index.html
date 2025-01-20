@@ -7,7 +7,17 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        .input-container {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            width: calc(100% - 22px);
         }
         table {
             width: 100%;
@@ -15,178 +25,159 @@
             margin-top: 20px;
         }
         th, td {
-            padding: 10px;
-            text-align: center;
             border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
         }
-        input {
-            margin: 5px;
-            padding: 5px;
+        th {
+            background-color: #f4f4f4;
         }
         button {
-            padding: 10px 15px;
-            background-color: #4CAF50;
+            background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: #218838;
         }
         .delete-btn {
-            background-color: red;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            cursor: pointer;
-        }
-        .delete-btn:hover {
-            background-color: #cc0000;
-        }
-        .highlight {
-            background-color: #f2f2f2;
+            background-color: #dc3545;
         }
     </style>
 </head>
 <body>
-
     <h1>Student Marks Tracker</h1>
-    <form id="studentForm">
-        <label for="name">Student Name:</label>
-        <input type="text" id="name" required><br>
 
-        <label for="class">Class:</label>
-        <input type="text" id="class" required><br>
+    <div class="input-container">
+        <input type="text" id="studentName" placeholder="Student Name">
+        <input type="text" id="className" placeholder="Class (e.g., 10A)">
+        <input type="text" id="subjectName" placeholder="Subject (e.g., Math)">
+        <input type="text" id="marks" placeholder="Enter marks separated by spaces or + , - *">
+        <button onclick="addStudent()">Add Student</button>
+        <button onclick="clearData()">Clear All Records</button>
+    </div>
 
-        <label for="marks">Marks (separate with space, +, *, -, or ,):</label>
-        <input type="text" id="marks" required><br>
-
-        <button type="submit">Add Student</button>
-    </form>
-
-    <h2>Student Marks Tables</h2>
-    <div id="tablesContainer"></div>
+    <div id="classTables"></div>
 
     <script>
-        const studentForm = document.getElementById('studentForm');
-        const tablesContainer = document.getElementById('tablesContainer');
-
-        // Load the data from localStorage on page load
-        document.addEventListener('DOMContentLoaded', loadStudentData);
-
-        studentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const name = document.getElementById('name').value;
-            const classInput = document.getElementById('class').value;
-            const marksInput = document.getElementById('marks').value;
-            
-            // Split marks by spaces, +, *, -, or commas and remove empty strings
-            const marksArray = marksInput.split(/[\s\+\*\-,]+/).map(Number).filter(Boolean);
-            const totalMarks = marksArray.reduce((acc, curr) => acc + curr, 0);
-
-            const studentData = { name: name, totalMarks: totalMarks, class: classInput };
-            
-            // Get current data from localStorage or initialize as empty array
-            let studentList = JSON.parse(localStorage.getItem('students')) || [];
-            
-            // Add the new student data to the list
-            studentList.push(studentData);
-
-            // Save updated list back to localStorage
-            localStorage.setItem('students', JSON.stringify(studentList));
-
-            // Refresh the tables to display updated data
-            loadStudentData();
-
-            // Clear the input fields
-            document.getElementById('name').value = '';
-            document.getElementById('class').value = '';
-            document.getElementById('marks').value = '';
+        document.addEventListener("DOMContentLoaded", () => {
+            if (localStorage.getItem("students")) {
+                students = JSON.parse(localStorage.getItem("students"));
+                displayStudents();
+            }
         });
 
-        // Function to load student data from localStorage
-        function loadStudentData() {
-            // Retrieve data from localStorage
-            const studentList = JSON.parse(localStorage.getItem('students')) || [];
+        let students = [];
 
-            // Clear the current tables container
-            tablesContainer.innerHTML = '';
+        function addStudent() {
+            const name = document.getElementById("studentName").value.trim();
+            const className = document.getElementById("className").value.trim();
+            const subject = document.getElementById("subjectName").value.trim();
+            const marksInput = document.getElementById("marks").value.trim();
 
-            // Group students by class
-            const groupedByClass = studentList.reduce((groups, student) => {
-                const className = student.class;
-                if (!groups[className]) {
-                    groups[className] = [];
+            if (!name || !className || !subject || !marksInput) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            const marks = marksInput.split(/[\s,+*]+/).map(Number);
+            const total = marks.reduce((sum, mark) => sum + mark, 0);
+
+            students.push({ name, className, subject, marks, total });
+
+            localStorage.setItem("students", JSON.stringify(students));
+
+            document.getElementById("studentName").value = "";
+            document.getElementById("className").value = "";
+            document.getElementById("subjectName").value = "";
+            document.getElementById("marks").value = "";
+
+            displayStudents();
+        }
+
+        function displayStudents() {
+            const container = document.getElementById("classTables");
+            container.innerHTML = "";
+
+            const classGroups = {};
+
+            students.forEach(student => {
+                if (!classGroups[student.className]) {
+                    classGroups[student.className] = [];
                 }
-                groups[className].push(student);
-                return groups;
-            }, {});
+                classGroups[student.className].push(student);
+            });
 
-            // Create a table for each class
-            for (const className in groupedByClass) {
-                // Create table for the class
-                const table = document.createElement('table');
-                const headerRow = document.createElement('tr');
-                const nameHeader = document.createElement('th');
-                nameHeader.textContent = 'Student Name';
-                const marksHeader = document.createElement('th');
-                marksHeader.textContent = 'Total Marks';
-                const actionHeader = document.createElement('th');
-                actionHeader.textContent = 'Action';
-                headerRow.appendChild(nameHeader);
-                headerRow.appendChild(marksHeader);
-                headerRow.appendChild(actionHeader);
-                table.appendChild(headerRow);
+            for (const className in classGroups) {
+                let studentData = classGroups[className];
+                
+                studentData.sort((a, b) => a.name.localeCompare(b.name));
 
-                // Add each student in the class to the table
-                groupedByClass[className].forEach((student, index) => {
-                    const newRow = table.insertRow();
-                    newRow.classList.add('highlight');
+                let tableHTML = `<h2>Class: ${className}</h2>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Subject</th>
+                        <th>Total Marks</th>
+                        <th>Actions</th>
+                    </tr>`;
 
-                    const nameCell = newRow.insertCell(0);
-                    const marksCell = newRow.insertCell(1);
-                    const actionCell = newRow.insertCell(2);
-
-                    nameCell.textContent = student.name;
-                    marksCell.textContent = student.totalMarks;
-
-                    // Create a delete button for each row
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.classList.add('delete-btn');
-                    deleteButton.onclick = function() {
-                        deleteStudent(index, student.class);
-                    };
-                    actionCell.appendChild(deleteButton);
+                studentData.forEach((student, index) => {
+                    tableHTML += `<tr>
+                        <td>${student.name}</td>
+                        <td>${student.subject}</td>
+                        <td>${student.total}</td>
+                        <td><button class="delete-btn" onclick="deleteStudent('${className}', ${index})">Delete</button></td>
+                    </tr>`;
                 });
 
-                // Add the table to the tables container
-                const classHeader = document.createElement('h3');
-                classHeader.textContent = `Class: ${className}`;
-                tablesContainer.appendChild(classHeader);
-                tablesContainer.appendChild(table);
+                tableHTML += `</table>`;
+                
+                tableHTML += getSubjectStatistics(studentData);
+
+                container.innerHTML += tableHTML;
             }
         }
 
-        // Function to delete student from localStorage
-        function deleteStudent(index, className) {
-            // Retrieve current student data from localStorage
-            let studentList = JSON.parse(localStorage.getItem('students')) || [];
+        function getSubjectStatistics(studentData) {
+            let subjectWiseData = {};
 
-            // Remove the student at the specified index from the right class
-            const student = studentList.find(student => student.class === className);
-            if (student) {
-                studentList = studentList.filter((_, idx) => idx !== index);
+            studentData.forEach(student => {
+                if (!subjectWiseData[student.subject]) {
+                    subjectWiseData[student.subject] = [];
+                }
+                subjectWiseData[student.subject].push(...student.marks);
+            });
+
+            let statsHTML = `<h3>Subject Statistics</h3><ul>`;
+
+            for (const subject in subjectWiseData) {
+                let marks = subjectWiseData[subject];
+                let highest = Math.max(...marks);
+                let lowest = Math.min(...marks);
+                let average = (marks.reduce((sum, mark) => sum + mark, 0) / marks.length).toFixed(2);
+
+                statsHTML += `<li>${subject}: Highest - ${highest}, Lowest - ${lowest}, Average - ${average}</li>`;
             }
 
-            // Save the updated list back to localStorage
-            localStorage.setItem('students', JSON.stringify(studentList));
+            statsHTML += `</ul>`;
+            return statsHTML;
+        }
 
-            // Refresh the tables after deletion
-            loadStudentData();
+        function deleteStudent(className, index) {
+            students = students.filter((student, i) => student.className !== className || i !== index);
+            localStorage.setItem("students", JSON.stringify(students));
+            displayStudents();
+        }
+
+        function clearData() {
+            if (confirm("Are you sure you want to delete all records?")) {
+                localStorage.removeItem("students");
+                students = [];
+                displayStudents();
+            }
         }
     </script>
-
 </body>
 </html>
