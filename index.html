@@ -1,120 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Student Marks Tracker</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            text-align: center;
-        }
-        .input-container {
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 10px;
-            margin: 5px;
-            width: calc(100% - 22px);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .delete-btn {
-            background-color: #dc3545;
-        }
+      body {
+          font-family: Arial, sans-serif;
+          max-width: 800px;
+          margin: 20px auto;
+          text-align: center;
+      }
+      .input-container {
+          margin-bottom: 20px;
+      }
+      input, button {
+          padding: 10px;
+          margin: 5px;
+          width: calc(100% - 22px);
+      }
+      table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+      }
+      th, td {
+          border: 1px solid #ddd;
+          padding: 10px;
+          text-align: left;
+      }
+      th {
+          background-color: #f4f4f4;
+      }
+      button {
+          background-color: #28a745;
+          color: white;
+          border: none;
+          cursor: pointer;
+      }
+      button:hover {
+          background-color: #218838;
+      }
+      .delete-btn {
+          background-color: #dc3545;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Student Marks Tracker</h1>
 
     <div class="input-container">
-        <input type="text" id="studentName" placeholder="Student Name">
-        <input type="text" id="className" placeholder="Class (e.g., 10A)">
-        <input type="text" id="subject" placeholder="Subject (e.g., Math)">
-        <input type="text" id="marks" placeholder="Enter marks separated by spaces or + , - *">
-        <button onclick="addStudent()">Add Student</button>
-        <button onclick="clearData()">Clear All Records</button>
+      <input type="text" id="studentName" placeholder="Student Name" />
+      <input type="text" id="className" placeholder="Class (e.g., 10A)" />
+      <input type="text" id="subject" placeholder="Subject (e.g., Math)" />
+      <input
+        type="text"
+        id="marks"
+        placeholder="Enter marks separated by spaces or + , - *"
+      />
+      <button onclick="addStudent()">Add Student</button>
+      <button onclick="clearData()">Clear All Records</button>
     </div>
 
     <div id="classTables"></div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (localStorage.getItem("students")) {
-                students = JSON.parse(localStorage.getItem("students"));
-                displayStudents();
-            }
-        });
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("students")) {
+          students = JSON.parse(localStorage.getItem("students"));
+          displayStudents();
+        }
+      });
 
-        let students = [];
+      let students = [];
 
-        function addStudent() {
-            const name = document.getElementById("studentName").value.trim();
-            const className = document.getElementById("className").value.trim();
-            const subject = document.getElementById("subject").value.trim();
-            const marksInput = document.getElementById("marks").value.trim();
+      function addStudent() {
+        const name = document.getElementById("studentName").value.trim();
+        const className = document.getElementById("className").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const marksInput = document.getElementById("marks").value.trim();
 
-            if (!name || !className || !subject || !marksInput) {
-                alert("Please fill all fields.");
-                return;
-            }
-
-            const marks = marksInput.split(/[\s,+*]+/).map(Number);
-            const total = marks.reduce((sum, mark) => sum + mark, 0);
-
-            students.push({ name, className, subject, marks, total });
-
-            localStorage.setItem("students", JSON.stringify(students));
-
-            document.getElementById("studentName").value = "";
-            document.getElementById("className").value = "";
-            document.getElementById("subject").value = "";
-            document.getElementById("marks").value = "";
-
-            displayStudents();
+        if (!name || !className || !subject || !marksInput) {
+          alert("Please fill all fields.");
+          return;
         }
 
-        function displayStudents() {
-            const container = document.getElementById("classTables");
-            container.innerHTML = "";
+        const marks = marksInput.split(/[\s,+*]+/).map(Number);
+        const total = marks.reduce((sum, mark) => sum + mark, 0);
 
-            const classGroups = {};
+        students.push({ name, className, subject, marks, total });
 
-            students.forEach(student => {
-                if (!classGroups[student.className]) {
-                    classGroups[student.className] = [];
-                }
-                classGroups[student.className].push(student);
-            });
+        localStorage.setItem("students", JSON.stringify(students));
 
-            for (const className in classGroups) {
-                let studentData = classGroups[className];
-                
-                studentData.sort((a, b) => a.name.localeCompare(b.name));
+        document.getElementById("studentName").value = "";
+        document.getElementById("className").value = "";
+        document.getElementById("subject").value = "";
+        document.getElementById("marks").value = "";
 
-                let tableHTML = `<h2>Class: ${className}</h2>
+        displayStudents();
+      }
+
+      function displayStudents() {
+        const container = document.getElementById("classTables");
+        container.innerHTML = "";
+
+        const classGroups = {};
+
+        students.forEach((student) => {
+          if (!classGroups[student.className]) {
+            classGroups[student.className] = [];
+          }
+          classGroups[student.className].push(student);
+        });
+
+        for (const className in classGroups) {
+          let studentData = classGroups[className];
+
+          studentData.sort((a, b) => a.name.localeCompare(b.name));
+
+          let tableHTML = `<h2>Class: ${className}</h2>
                 <table>
                     <tr>
                         <th>Name</th>
@@ -123,61 +127,65 @@
                         <th>Actions</th>
                     </tr>`;
 
-                studentData.forEach((student, index) => {
-                    tableHTML += `<tr>
+          studentData.forEach((student, index) => {
+            tableHTML += `<tr>
                         <td>${student.name}</td>
                         <td>${student.subject}</td>
                         <td>${student.total}</td>
                         <td><button class="delete-btn" onclick="deleteStudent('${className}', ${index})">Delete</button></td>
                     </tr>`;
-                });
+          });
 
-                tableHTML += `</table>`;
-                
-                tableHTML += getSubjectStatistics(studentData);
+          tableHTML += `</table>`;
 
-                container.innerHTML += tableHTML;
-            }
+          tableHTML += getSubjectStatistics(studentData);
+
+          container.innerHTML += tableHTML;
+        }
+      }
+
+      function getSubjectStatistics(studentData) {
+        let subjectWiseData = {};
+
+        studentData.forEach((student) => {
+          if (!subjectWiseData[student.subject]) {
+            subjectWiseData[student.subject] = [];
+          }
+          subjectWiseData[student.subject].push(...student.marks);
+        });
+
+        let statsHTML = `<h3>Subject Statistics</h3><ul>`;
+
+        for (const subject in subjectWiseData) {
+          let marks = subjectWiseData[subject];
+          let highest = Math.max(...marks);
+          let lowest = Math.min(...marks);
+          let average = (
+            marks.reduce((sum, mark) => sum + mark, 0) / marks.length
+          ).toFixed(2);
+
+          statsHTML += `<li>${subject}: Highest - ${highest}, Lowest - ${lowest}, Average - ${average}</li>`;
         }
 
-        function getSubjectStatistics(studentData) {
-            let subjectWiseData = {};
+        statsHTML += `</ul>`;
+        return statsHTML;
+      }
 
-            studentData.forEach(student => {
-                if (!subjectWiseData[student.subject]) {
-                    subjectWiseData[student.subject] = [];
-                }
-                subjectWiseData[student.subject].push(...student.marks);
-            });
+      function deleteStudent(className, index) {
+        students = students.filter(
+          (student, i) => student.className !== className || i !== index
+        );
+        localStorage.setItem("students", JSON.stringify(students));
+        displayStudents();
+      }
 
-            let statsHTML = `<h3>Subject Statistics</h3><ul>`;
-
-            for (const subject in subjectWiseData) {
-                let marks = subjectWiseData[subject];
-                let highest = Math.max(...marks);
-                let lowest = Math.min(...marks);
-                let average = (marks.reduce((sum, mark) => sum + mark, 0) / marks.length).toFixed(2);
-
-                statsHTML += `<li>${subject}: Highest - ${highest}, Lowest - ${lowest}, Average - ${average}</li>`;
-            }
-
-            statsHTML += `</ul>`;
-            return statsHTML;
+      function clearData() {
+        if (confirm("Are you sure you want to delete all records?")) {
+          localStorage.removeItem("students");
+          students = [];
+          displayStudents();
         }
-
-        function deleteStudent(className, index) {
-            students = students.filter((student, i) => student.className !== className || i !== index);
-            localStorage.setItem("students", JSON.stringify(students));
-            displayStudents();
-        }
-
-        function clearData() {
-            if (confirm("Are you sure you want to delete all records?")) {
-                localStorage.removeItem("students");
-                students = [];
-                displayStudents();
-            }
-        }
+      }
     </script>
-</body>
+  </body>
 </html>
